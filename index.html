@@ -1,0 +1,521 @@
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Librio - Biblioteca Escolar</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+    }
+    header {
+      background: #243447;
+      color: white;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { margin: 0; font-size: 24px; }
+    header span { opacity: .8; font-size: 14px; }
+
+    .container {
+      max-width: 1180px;
+      margin: 28px auto;
+      padding: 0 18px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .stat {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .stat .number {
+      font-size: 30px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    nav button {
+      border: 0;
+      padding: 11px 16px;
+      border-radius: 9px;
+      cursor: pointer;
+      background: #e5e7eb;
+      font-weight: 600;
+    }
+    nav button.active {
+      background: #243447;
+      color: white;
+    }
+
+    .panel {
+      display: none;
+      background: white;
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .panel.active { display: block; }
+
+    h2 { margin-top: 0; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label { font-size: 13px; font-weight: 700; }
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-primary { background: #243447; color: white; }
+    .btn-success { background: #16845b; color: white; }
+    .btn-danger { background: #c73c3c; color: white; }
+
+    .search {
+      margin: 18px 0 10px;
+      max-width: 380px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+    th {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+    td { font-size: 14px; }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .available { background: #dcfce7; color: #166534; }
+    .borrowed { background: #fef3c7; color: #92400e; }
+    .late { background: #fee2e2; color: #991b1b; }
+
+    .empty {
+      text-align: center;
+      color: #6b7280;
+      padding: 26px 10px;
+    }
+
+    .note {
+      color: #6b7280;
+      font-size: 13px;
+      margin-top: -8px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 760px) {
+      .stats, .form-grid { grid-template-columns: 1fr; }
+      table { font-size: 12px; }
+      th, td { padding: 9px 6px; }
+      header { align-items: flex-start; gap: 6px; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>📚 Librio</h1>
+  <span>Biblioteca Escolar — MVP</span>
+</header>
+
+<div class="container">
+  <section class="stats">
+    <div class="stat">
+      <div>Total de livros</div>
+      <div class="number" id="totalBooks">0</div>
+    </div>
+    <div class="stat">
+      <div>Emprestados agora</div>
+      <div class="number" id="borrowedBooks">0</div>
+    </div>
+    <div class="stat">
+      <div>Em atraso</div>
+      <div class="number" id="lateBooks">0</div>
+    </div>
+  </section>
+
+  <nav>
+    <button class="active" onclick="showPanel('books', this)">Livros</button>
+    <button onclick="showPanel('loan', this)">Novo empréstimo</button>
+    <button onclick="showPanel('current', this)">Empréstimos atuais</button>
+    <button onclick="showPanel('history', this)">Histórico</button>
+  </nav>
+
+  <section id="books" class="panel active">
+    <h2>Cadastro de livros</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label>Título *</label>
+        <input id="bookTitle" placeholder="Ex.: O Pequeno Príncipe">
+      </div>
+      <div class="field">
+        <label>Autor</label>
+        <input id="bookAuthor" placeholder="Ex.: Antoine de Saint-Exupéry">
+      </div>
+      <div class="field">
+        <label>Código / Tombo *</label>
+        <input id="bookCode" placeholder="Ex.: LIV-001">
+      </div>
+      <div class="field">
+        <label>Categoria</label>
+        <input id="bookCategory" placeholder="Ex.: Literatura">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addBook()">Cadastrar livro</button>
+
+    <input id="bookSearch" class="search" placeholder="Pesquisar por título, autor ou código..." oninput="renderBooks()">
+
+    <div id="booksTable"></div>
+  </section>
+
+  <section id="loan" class="panel">
+    <h2>Registrar empréstimo</h2>
+    <p class="note">Apenas livros disponíveis aparecem para empréstimo.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Livro *</label>
+        <select id="loanBook"></select>
+      </div>
+      <div class="field">
+        <label>Aluno *</label>
+        <input id="studentName" placeholder="Nome do aluno">
+      </div>
+      <div class="field">
+        <label>Turma</label>
+        <input id="studentClass" placeholder="Ex.: 7º A">
+      </div>
+      <div class="field">
+        <label>Data do empréstimo *</label>
+        <input id="loanDate" type="date">
+      </div>
+      <div class="field">
+        <label>Data prevista de entrega *</label>
+        <input id="dueDate" type="date">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addLoan()">Registrar empréstimo</button>
+  </section>
+
+  <section id="current" class="panel">
+    <h2>Livros emprestados no momento</h2>
+    <input id="currentSearch" class="search" placeholder="Pesquisar aluno, livro ou turma..." oninput="renderCurrentLoans()">
+    <div id="currentLoansTable"></div>
+  </section>
+
+  <section id="history" class="panel">
+    <h2>Histórico de empréstimos</h2>
+    <div id="historyTable"></div>
+  </section>
+</div>
+
+<script>
+  const BOOKS_KEY = 'librio_books';
+  const LOANS_KEY = 'librio_loans';
+
+  let books = JSON.parse(localStorage.getItem(BOOKS_KEY) || '[]');
+  let loans = JSON.parse(localStorage.getItem(LOANS_KEY) || '[]');
+
+  function save() {
+    localStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+    localStorage.setItem(LOANS_KEY, JSON.stringify(loans));
+    refreshAll();
+  }
+
+  function showPanel(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function addBook() {
+    const title = document.getElementById('bookTitle').value.trim();
+    const author = document.getElementById('bookAuthor').value.trim();
+    const code = document.getElementById('bookCode').value.trim();
+    const category = document.getElementById('bookCategory').value.trim();
+
+    if (!title || !code) {
+      alert('Informe o título e o código do livro.');
+      return;
+    }
+
+    if (books.some(b => b.code.toLowerCase() === code.toLowerCase())) {
+      alert('Já existe um livro com esse código.');
+      return;
+    }
+
+    books.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+      title, author, code, category
+    });
+
+    document.getElementById('bookTitle').value = '';
+    document.getElementById('bookAuthor').value = '';
+    document.getElementById('bookCode').value = '';
+    document.getElementById('bookCategory').value = '';
+    save();
+  }
+
+  function deleteBook(id) {
+    const activeLoan = loans.some(l => l.bookId === id && !l.returnDate);
+    if (activeLoan) {
+      alert('Este livro está emprestado e não pode ser excluído.');
+      return;
+    }
+    if (confirm('Excluir este livro?')) {
+      books = books.filter(b => b.id !== id);
+      save();
+    }
+  }
+
+  function addLoan() {
+    const bookId = document.getElementById('loanBook').value;
+    const studentName = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    const loanDate = document.getElementById('loanDate').value;
+    const dueDate = document.getElementById('dueDate').value;
+
+    if (!bookId || !studentName || !loanDate || !dueDate) {
+      alert('Preencha livro, aluno, data do empréstimo e data prevista de entrega.');
+      return;
+    }
+
+    if (dueDate < loanDate) {
+      alert('A data de entrega não pode ser anterior à data do empréstimo.');
+      return;
+    }
+
+    loans.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+      bookId, studentName, studentClass, loanDate, dueDate, returnDate: ''
+    });
+
+    document.getElementById('studentName').value = '';
+    document.getElementById('studentClass').value = '';
+    setDefaultDates();
+    save();
+    alert('Empréstimo registrado com sucesso.');
+  }
+
+  function returnBook(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+
+    if (confirm('Confirmar a devolução deste livro?')) {
+      loan.returnDate = new Date().toISOString().slice(0,10);
+      save();
+    }
+  }
+
+  function getBook(bookId) {
+    return books.find(b => b.id === bookId);
+  }
+
+  function isBorrowed(bookId) {
+    return loans.some(l => l.bookId === bookId && !l.returnDate);
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const [y,m,d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function isLate(loan) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const due = new Date(loan.dueDate + 'T00:00:00');
+    return !loan.returnDate && due < today;
+  }
+
+  function renderBooks() {
+    const q = (document.getElementById('bookSearch')?.value || '').toLowerCase();
+    const filtered = books.filter(b =>
+      [b.title, b.author, b.code, b.category].join(' ').toLowerCase().includes(q)
+    );
+
+    if (!filtered.length) {
+      document.getElementById('booksTable').innerHTML = '<div class="empty">Nenhum livro cadastrado.</div>';
+      return;
+    }
+
+    document.getElementById('booksTable').innerHTML = `
+      <table>
+        <thead><tr><th>Código</th><th>Título</th><th>Autor</th><th>Categoria</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${filtered.map(b => `
+            <tr>
+              <td>${escapeHtml(b.code)}</td>
+              <td><strong>${escapeHtml(b.title)}</strong></td>
+              <td>${escapeHtml(b.author || '-')}</td>
+              <td>${escapeHtml(b.category || '-')}</td>
+              <td>${isBorrowed(b.id)
+                ? '<span class="badge borrowed">Emprestado</span>'
+                : '<span class="badge available">Disponível</span>'}
+              </td>
+              <td><button class="btn btn-danger" onclick="deleteBook('${b.id}')">Excluir</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function renderLoanOptions() {
+    const available = books.filter(b => !isBorrowed(b.id));
+    const select = document.getElementById('loanBook');
+    select.innerHTML = available.length
+      ? '<option value="">Selecione...</option>' + available.map(b =>
+          `<option value="${b.id}">${escapeHtml(b.code)} — ${escapeHtml(b.title)}</option>`
+        ).join('')
+      : '<option value="">Nenhum livro disponível</option>';
+  }
+
+  function renderCurrentLoans() {
+    const q = (document.getElementById('currentSearch')?.value || '').toLowerCase();
+    const active = loans
+      .filter(l => !l.returnDate)
+      .filter(l => {
+        const b = getBook(l.bookId);
+        return [l.studentName, l.studentClass, b?.title, b?.code].join(' ').toLowerCase().includes(q);
+      });
+
+    if (!active.length) {
+      document.getElementById('currentLoansTable').innerHTML = '<div class="empty">Nenhum livro emprestado no momento.</div>';
+      return;
+    }
+
+    document.getElementById('currentLoansTable').innerHTML = `
+      <table>
+        <thead><tr><th>Livro</th><th>Aluno</th><th>Turma</th><th>Empréstimo</th><th>Entrega</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${active.map(l => {
+            const b = getBook(l.bookId);
+            const late = isLate(l);
+            return `<tr>
+              <td><strong>${escapeHtml(b?.title || 'Livro removido')}</strong><br><small>${escapeHtml(b?.code || '')}</small></td>
+              <td>${escapeHtml(l.studentName)}</td>
+              <td>${escapeHtml(l.studentClass || '-')}</td>
+              <td>${formatDate(l.loanDate)}</td>
+              <td>${formatDate(l.dueDate)}</td>
+              <td>${late ? '<span class="badge late">Em atraso</span>' : '<span class="badge borrowed">Emprestado</span>'}</td>
+              <td><button class="btn btn-success" onclick="returnBook('${l.id}')">Registrar devolução</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function renderHistory() {
+    if (!loans.length) {
+      document.getElementById('historyTable').innerHTML = '<div class="empty">Nenhum empréstimo registrado.</div>';
+      return;
+    }
+
+    const sorted = [...loans].sort((a,b) => b.loanDate.localeCompare(a.loanDate));
+    document.getElementById('historyTable').innerHTML = `
+      <table>
+        <thead><tr><th>Livro</th><th>Aluno</th><th>Turma</th><th>Empréstimo</th><th>Prevista</th><th>Devolução</th></tr></thead>
+        <tbody>
+          ${sorted.map(l => {
+            const b = getBook(l.bookId);
+            return `<tr>
+              <td>${escapeHtml(b?.title || 'Livro removido')}</td>
+              <td>${escapeHtml(l.studentName)}</td>
+              <td>${escapeHtml(l.studentClass || '-')}</td>
+              <td>${formatDate(l.loanDate)}</td>
+              <td>${formatDate(l.dueDate)}</td>
+              <td>${l.returnDate ? formatDate(l.returnDate) : '<span class="badge borrowed">Em aberto</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function renderStats() {
+    const active = loans.filter(l => !l.returnDate);
+    document.getElementById('totalBooks').textContent = books.length;
+    document.getElementById('borrowedBooks').textContent = active.length;
+    document.getElementById('lateBooks').textContent = active.filter(isLate).length;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+  }
+
+  function setDefaultDates() {
+    const today = new Date();
+    const due = new Date();
+    due.setDate(today.getDate() + 7);
+    document.getElementById('loanDate').value = today.toISOString().slice(0,10);
+    document.getElementById('dueDate').value = due.toISOString().slice(0,10);
+  }
+
+  function refreshAll() {
+    renderBooks();
+    renderLoanOptions();
+    renderCurrentLoans();
+    renderHistory();
+    renderStats();
+  }
+
+  setDefaultDates();
+  refreshAll();
+</script>
+</body>
+</html>
